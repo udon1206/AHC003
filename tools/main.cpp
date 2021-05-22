@@ -37,7 +37,8 @@ const int H = 30;
 const int W = 30;
 int ch[H][W];
 int cw[H][W];
-
+int chcount[H][W];
+int cwcount[H][W];
 inline int cost(int sh, int sw, int th, int tw)
 {
 	if(sh == th)
@@ -52,6 +53,19 @@ inline int cost(int sh, int sw, int th, int tw)
 			std::swap(sh, sw);
 		return ch[sh][sw];
 	}
+}
+
+void updatech(int i, int j, int val)
+{
+	ll sum = 1LL * ch[i][j] * chcount[i][j] + 1LL * val * (1000 - chcount[i][j]) / 1000;
+	chcount[i][j] += 1;
+	ch[i][j] = sum / chcount[i][j];
+}
+void updatecw(int i, int j, int val)
+{
+	ll sum = 1LL * cw[i][j] * cwcount[i][j] + 1LL * val * (1000 - cwcount[i][j]) / 1000;
+	cwcount[i][j] += 1;
+	cw[i][j] = sum / cwcount[i][j];
 }
 void solve_first()
 {
@@ -78,7 +92,7 @@ void solve_first()
 		len /= cnt;
 		for (int i = 0; i < W - 1; ++i)
 		{
-			ch[th][i] = (ch[th][i] + len) / 2;
+			updatecw(th, i, len);
 		}
 	}
 	else if(sw == tw)
@@ -102,7 +116,7 @@ void solve_first()
 		len /= cnt;
 		for (int i = 0; i < H - 1; ++i)
 		{
-			ch[i][sw] = (ch[i][sw] + len) / 2;
+			updatech(i, sw, len);
 		}
 	}
 	else
@@ -138,11 +152,11 @@ void solve_first()
 		len /= cnt;
 		for (int i = 0; i < H - 1; ++i)
 		{
-			ch[i][sw] = (ch[i][sw] + len) / 2;
+			updatech(i, sw, len);
 		}
 		for (int i = 0; i < W - 1; ++i)
 		{
-			cw[th][i] = (cw[th][i] + len) / 2;
+			updatecw(th, i, len);
 		}
 	}
 }
@@ -201,11 +215,36 @@ void solve_last()
 	std::reverse(res.begin(), res.end());
 	cout << res << endl;
 	ll len; cin >> len;
+	len /= cnt;
+	curh = sh, curw = sw;
+	for(const auto &c : res)
+	{
+		if(c == 'R')
+		{
+			updatecw(curh, curw, len);
+			curw += 1;
+		}
+		if(c == 'L')
+		{
+			updatecw(curh, curw - 1, len);
+			curw -= 1;
+		}
+		if(c == 'U')
+		{
+			updatech(curh - 1, curw, len);
+			curh -= 1;
+		}
+		if(c == 'D')
+		{
+			updatech(curh, curw, len);
+			curh += 1;
+		}
+	}
 }
 
 void solve(int kkt)
 {
-	if(kkt < 200)
+	if(kkt < 130)
 	{
 		solve_first();
 	}
@@ -223,6 +262,7 @@ int main()
   {
   	for (int j = 0; j < W; ++j)
   	{
+  		chcount[i][j] = cwcount[i][j] = 1;
   		ch[i][j] = cw[i][j] = 4500;
   	}
   }
