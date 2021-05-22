@@ -71,93 +71,46 @@ void solve_first()
 {
 	auto [sh, sw, th, tw] = input();
 	int curh = sh, curw = sw;
-	if(sh == th)
 	{
-		int cnt = 0;
-		std::string res;
-		while(curw < tw)
-		{
-			res += 'R';
-			curw += 1;
-			cnt += 1;
-		}
-		while(curw > tw)
-		{
-			res += 'L';
-			curw -= 1;
-			cnt += 1;
-		}
-		cout << res << endl;
-		ll len; cin >> len;
-		len /= cnt;
-		for (int i = 0; i < W - 1; ++i)
-		{
-			updatecw(th, i, len);
-		}
-	}
-	else if(sw == tw)
-	{
-		int cnt = 0;
+		int cnth = 0, cntw = 0;
 		std::string res;
 		while(curh < th)
 		{
 			res += 'D';
 			curh += 1;
-			cnt += 1;
+			cnth += 1;
 		}
 		while(curh > th)
 		{
 			res += 'U';
 			curh -= 1;
-			cnt += 1;
-		}
-		cout << res << endl;
-		ll len; cin >> len;
-		len /= cnt;
-		for (int i = 0; i < H - 1; ++i)
-		{
-			updatech(i, sw, len);
-		}
-	}
-	else
-	{
-		int cnt = 0;
-		std::string res;
-		while(curh < th)
-		{
-			res += 'D';
-			curh += 1;
-			cnt += 1;
-		}
-		while(curh > th)
-		{
-			res += 'U';
-			curh -= 1;
-			cnt += 1;
+			cnth += 1;
 		}
 		while(curw < tw)
 		{
 			res += 'R';
 			curw += 1;
-			cnt += 1;
+			cntw += 1;
 		}
 		while(curw > tw)
 		{
 			res += 'L';
 			curw -= 1;
-			cnt += 1;
+			cntw += 1;
 		}
 		cout << res << endl;
 		ll len; cin >> len;
-		len /= cnt;
-		for (int i = 0; i < H - 1; ++i)
-		{
-			updatech(i, sw, len);
-		}
-		for (int i = 0; i < W - 1; ++i)
-		{
-			updatecw(th, i, len);
-		}
+		len /= (cnth + cntw);
+		if(cnth * 10 > (cnth + cntw) * 3)
+			for (int i = 0; i < H - 1; ++i)
+			{
+				updatech(i, sw, len);
+			}
+		if(cntw * 10 > (cnth + cntw) * 3)
+			for (int i = 0; i < W - 1; ++i)
+			{
+				updatecw(th, i, len);
+			}
 	}
 }
 void solve_last()
