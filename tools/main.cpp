@@ -53,7 +53,100 @@ inline int cost(int sh, int sw, int th, int tw)
 		return ch[sh][sw];
 	}
 }
-void solve()
+void solve_first()
+{
+	auto [sh, sw, th, tw] = input();
+	int curh = sh, curw = sw;
+	if(sh == th)
+	{
+		int cnt = 0;
+		std::string res;
+		while(curw < tw)
+		{
+			res += 'R';
+			curw += 1;
+			cnt += 1;
+		}
+		while(curw > tw)
+		{
+			res += 'L';
+			curw -= 1;
+			cnt += 1;
+		}
+		cout << res << endl;
+		ll len; cin >> len;
+		len /= cnt;
+		for (int i = 0; i < W - 1; ++i)
+		{
+			ch[th][i] = (ch[th][i] + len) / 2;
+		}
+	}
+	else if(sw == tw)
+	{
+		int cnt = 0;
+		std::string res;
+		while(curh < th)
+		{
+			res += 'D';
+			curh += 1;
+			cnt += 1;
+		}
+		while(curh > th)
+		{
+			res += 'U';
+			curh -= 1;
+			cnt += 1;
+		}
+		cout << res << endl;
+		ll len; cin >> len;
+		len /= cnt;
+		for (int i = 0; i < H - 1; ++i)
+		{
+			ch[i][sw] = (ch[i][sw] + len) / 2;
+		}
+	}
+	else
+	{
+		int cnt = 0;
+		std::string res;
+		while(curh < th)
+		{
+			res += 'D';
+			curh += 1;
+			cnt += 1;
+		}
+		while(curh > th)
+		{
+			res += 'U';
+			curh -= 1;
+			cnt += 1;
+		}
+		while(curw < tw)
+		{
+			res += 'R';
+			curw += 1;
+			cnt += 1;
+		}
+		while(curw > tw)
+		{
+			res += 'L';
+			curw -= 1;
+			cnt += 1;
+		}
+		cout << res << endl;
+		ll len; cin >> len;
+		len /= cnt;
+		for (int i = 0; i < H - 1; ++i)
+		{
+			ch[i][sw] = (ch[i][sw] + len) / 2;
+		}
+		for (int i = 0; i < W - 1; ++i)
+		{
+			cw[th][i] = (cw[th][i] + len) / 2;
+		}
+	}
+}
+void solve_last()
 {
 	auto [sh, sw, th, tw] = input();
 	using T = std::tuple<int, int, int>;
@@ -108,30 +201,17 @@ void solve()
 	std::reverse(res.begin(), res.end());
 	cout << res << endl;
 	ll len; cin >> len;
-	len /= cnt;
-	curh = sh, curw = sw;
-	for(const auto &c : res)
+}
+
+void solve(int kkt)
+{
+	if(kkt < 200)
 	{
-		if(c == 'R')
-		{
-			ch[curh][curw] = len;
-			curw += 1;
-		}
-		if(c == 'L')
-		{
-			ch[curh][curw - 1] = len;
-			curw -= 1;
-		}
-		if(c == 'U')
-		{
-			ch[curh - 1][curw] = len;
-			curh -= 1;
-		}
-		if(c == 'D')
-		{
-			ch[curh][curw] = len;
-			curh += 1;
-		}
+		solve_first();
+	}
+	else
+	{
+		solve_last();
 	}
 }
 int main()
@@ -139,25 +219,16 @@ int main()
   std::cin.tie(nullptr);
   std::ios::sync_with_stdio(false);
 
-  const int INIC = 5000;
-
-  for (int i = 0; i < H - 1; ++i)
+  for (int i = 0; i < H; ++i)
   {
   	for (int j = 0; j < W; ++j)
   	{
-  		ch[i][j] = INIC;
-  	}
-  }
-  for (int i = 0; i < H; ++i)
-  {
-  	for (int j = 0; j < W - 1; ++j)
-  	{
-  		cw[i][j] = INIC;
+  		ch[i][j] = cw[i][j] = 4500;
   	}
   }
   int kkt = 1000;
   //cin >> kkt;
   while(kkt--)
-    solve();
+    solve(1000 - kkt);
   return 0;
 }
