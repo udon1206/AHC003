@@ -39,6 +39,8 @@ int ch[H][W];
 int cw[H][W];
 int chcount[H][W];
 int cwcount[H][W];
+int sh, sw, th, tw;
+bool usedW[H], usedH[W];
 inline int cost(int sh, int sw, int th, int tw)
 {
 	if(sh == th)
@@ -57,65 +59,18 @@ inline int cost(int sh, int sw, int th, int tw)
 
 void updatech(int i, int j, int val)
 {
-	ll sum = 1LL * ch[i][j] * chcount[i][j] + 1LL * val * (1000 - chcount[i][j]) / 1000;
+	ll sum = 1LL * ch[i][j] * chcount[i][j] + val;
 	chcount[i][j] += 1;
 	ch[i][j] = sum / chcount[i][j];
 }
 void updatecw(int i, int j, int val)
 {
-	ll sum = 1LL * cw[i][j] * cwcount[i][j] + 1LL * val * (1000 - cwcount[i][j]) / 1000;
+	ll sum = 1LL * cw[i][j] * cwcount[i][j] + val;
 	cwcount[i][j] += 1;
 	cw[i][j] = sum / cwcount[i][j];
 }
-void solve_first()
-{
-	auto [sh, sw, th, tw] = input();
-	int curh = sh, curw = sw;
-	{
-		int cnth = 0, cntw = 0;
-		std::string res;
-		while(curh < th)
-		{
-			res += 'D';
-			curh += 1;
-			cnth += 1;
-		}
-		while(curh > th)
-		{
-			res += 'U';
-			curh -= 1;
-			cnth += 1;
-		}
-		while(curw < tw)
-		{
-			res += 'R';
-			curw += 1;
-			cntw += 1;
-		}
-		while(curw > tw)
-		{
-			res += 'L';
-			curw -= 1;
-			cntw += 1;
-		}
-		cout << res << endl;
-		ll len; cin >> len;
-		len /= (cnth + cntw);
-		if(cnth * 10 > (cnth + cntw) * 3)
-			for (int i = 0; i < H - 1; ++i)
-			{
-				updatech(i, sw, len);
-			}
-		if(cntw * 10 > (cnth + cntw) * 3)
-			for (int i = 0; i < W - 1; ++i)
-			{
-				updatecw(th, i, len);
-			}
-	}
-}
 void solve_last()
 {
-	auto [sh, sw, th, tw] = input();
 	using T = std::tuple<int, int, int>;
 	std::priority_queue<T, std::vector<T>, std::greater<>> pq;
 	std::array<std::array<int, W>, H> d;
@@ -170,33 +125,177 @@ void solve_last()
 	ll len; cin >> len;
 	len /= cnt;
 	curh = sh, curw = sw;
+	int run = 0;
+	char pre = 'X';
 	for(const auto &c : res)
 	{
+		if(c != pre)
+		{
+			if(run >= 15)
+			{
+				if(pre == 'R' or pre == 'L')
+				{
+					for (int i = 0; i < W - 1; ++i)
+					{
+						updatecw(curh, i, len);
+					}
+				}
+				else
+				{
+					for (int i = 0; i < H - 1; ++i)
+					{
+						updatech(i, curw, len);
+					}
+				}
+			}
+			run = 0;
+		}
+		else
+			run += 1;
 		if(c == 'R')
 		{
-			updatecw(curh, curw, len);
+
+			// updatecw(curh, curw, len);
 			curw += 1;
 		}
 		if(c == 'L')
 		{
-			updatecw(curh, curw - 1, len);
+			// updatecw(curh, curw - 1, len);
 			curw -= 1;
 		}
 		if(c == 'U')
 		{
-			updatech(curh - 1, curw, len);
+
+			// updatech(curh - 1, curw, len);
 			curh -= 1;
 		}
 		if(c == 'D')
 		{
-			updatech(curh, curw, len);
+			// updatech(curh, curw, len);
 			curh += 1;
+		}
+		pre = c;
+	}
+}
+
+void solve_first()
+{
+	int curh = sh, curw = sw;
+	int cnth = std::abs(sh - th);
+	int cntw = std::abs(sw - tw);
+	std::string res;
+	auto movew = [&](int tw)
+	{
+		while(curw < tw)
+		{
+			res += 'R';
+			curw += 1;
+		}
+		while(curw > tw)
+		{
+			res += 'L';
+			curw -= 1;
+		}
+	};
+	auto moveh = [&](int th)
+	{
+		while(curh < th)
+		{
+			res += 'D';
+			curh += 1;
+		}
+		while(curh > th)
+		{
+			res += 'U';
+			curh -= 1;
+		}
+	};
+	if(std::max(cnth, cntw) * 10 < (cnth + cntw) * 7)
+	{
+		movew(tw);
+		moveh(th);
+		cout << res << endl;
+		ll len; cin >> len;
+		len /= (cnth + cntw);
+		for (int i = std::min(sw, tw); i <= std::max(sw, tw); ++i)
+		{
+			updatecw(sh, i, len);
+		}
+		for (int i = std::min(sh, th); i <= std::max(sh, th); ++i)
+		{
+			updatech(i, tw, len);
+		}
+	}
+	else
+	{
+		if(cnth > cntw)
+		{
+			int w = -1;
+			for (int i = std::min(sw, tw); i <= std::max(sw, tw); ++i)
+			{
+				if(not usedH[i])
+				{
+					w = i;
+					if(cnth > 10)
+						usedH[w] = true;
+					break;
+				}
+			}
+			if(w == -1)
+			{
+				solve_last();
+			}
+			else
+			{
+				movew(w);
+				moveh(th);
+				movew(tw);
+				cout << res << endl;
+				ll len; cin >> len;
+				len /= (cnth + cntw);
+				for (int i = 0; i < H - 1; ++i)
+				{
+					updatech(i, w, len);
+				}
+			}
+		}
+		else
+		{
+			int h = -1;
+			for (int i = std::min(sh, th); i <= std::max(sh, th); ++i)
+			{
+				if(not usedW[i])
+				{
+					h = i;
+					if(cntw > 10)
+						usedW[h] = true;
+					break;
+				}
+			}
+			if(h == -1)
+			{
+				solve_last();
+			}
+			else
+			{
+				moveh(h);
+				movew(tw);
+				moveh(th);
+				cout << res << endl;
+				ll len; cin >> len;
+				len /= (cnth + cntw);
+				for (int i = 0; i < W - 1; ++i)
+				{
+					updatecw(h, i, len);
+				}
+			}
 		}
 	}
 }
 
 void solve(int kkt)
 {
+	std::tie(sh, sw, th, tw) = input();
 	if(kkt < 130)
 	{
 		solve_first();
@@ -215,7 +314,7 @@ int main()
   {
   	for (int j = 0; j < W; ++j)
   	{
-  		chcount[i][j] = cwcount[i][j] = 1;
+  		chcount[i][j] = cwcount[i][j] = 0;
   		ch[i][j] = cw[i][j] = 4500;
   	}
   }
