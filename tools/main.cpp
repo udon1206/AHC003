@@ -37,6 +37,8 @@ const int H = 30;
 const int W = 30;
 int ch[H][W];
 int cw[H][W];
+int mch[H][W];
+int mcw[H][W];
 int chcount[H][W];
 int cwcount[H][W];
 int sh, sw, th, tw;
@@ -44,7 +46,6 @@ bool usedW[H], usedH[W];
 std::vector<std::vector<int>> A;
 std::vector<int> LIST[1800];
 std::vector<int> B, C;
-std::mt19937 engine(0);
 std::chrono::system_clock::time_point  start, end;
 int enc(int h, int w, int dir)
 {
@@ -89,6 +90,12 @@ void updatecw(int i, int j, int val)
 	ll sum = 1LL * cw[i][j] * cwcount[i][j] + val;
 	cwcount[i][j] += 1;
 	cw[i][j] = sum / cwcount[i][j];
+}
+unsigned long xor128() {
+  static unsigned long x=123456789, y=362436069, z=521288629, w=88675123;
+  unsigned long t=(x^(x<<11));
+  x=y; y=z; z=w;
+  return ( w=(w^(w>>19))^(t^(t>>8)));
 }
 void solve_last()
 {
@@ -216,7 +223,7 @@ void solve_first()
 			curh -= 1;
 		}
 	};
-	if(std::max(cnth, cntw) * 10 < (cnth + cntw) * 7)
+	if(std::max(cnth, cntw) * 10 < (cnth + cntw) * 5)
 	{
 		movew(tw);
 		moveh(th);
@@ -311,7 +318,58 @@ void solve_first()
 void solve(int kkt)
 {
 	std::tie(sh, sw, th, tw) = input();
-	if(kkt < 200)
+	if(kkt > 0)
+	{
+		auto st = std::chrono::system_clock::now();
+		double deadline = pow(0.9999998, 1000 - kkt) * kkt * 1.9;
+		double start_temp = 1;
+		double end_temp = 0.01;
+		double now_time = std::chrono::duration_cast<std::chrono::milliseconds>(st-start).count();
+		double TL = deadline - now_time;
+		for (int jupi = 0;; ++jupi)
+		{
+			if(jupi % 10 == 0)
+			{
+				end = std::chrono::system_clock::now();
+				if(std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() > deadline)
+					break;
+			}
+			const int row = xor128() % A.size();
+			const int col = xor128() % A[row].size();
+			const int CHANGE = 2;
+			int change = (int)(xor128() % CHANGE) ? 1 : -1;
+			const int cval = A[row][col];
+			if(cost(cval) + change < 0)
+			{
+				change = -cost(cval);
+			}
+			int diff = 0;
+			for(const auto &idx : LIST[cval])
+			{
+				const int pc = C[idx];
+				const int nc = C[idx] + change;
+				int pd = std::abs(B[idx] - pc);
+				int nd = std::abs(B[idx] - nc);
+				diff += pd - nd;
+			}
+			double temp = start_temp + (end_temp - start_temp) 
+			* std::chrono::duration_cast<std::chrono::milliseconds>(end-st).count() / TL;
+			double prob = std::exp(diff / temp);
+			if(prob >= (xor128() % (int)(1e6)) / 1e6)
+			{
+				auto [dir, h, w] = dec(cval);
+				if(dir == 0)
+				{
+					cw[h][w] += change;
+				}
+				else
+				{
+					ch[h][w] += change;
+				}
+			}
+		}
+	}
+	if(kkt < 130)
 	{
 		solve_first();
 	}
@@ -332,51 +390,7 @@ void solve(int kkt)
 			C[i] += cost(A[i][j]);
 		}
 	}
-	double deadline = pow(0.99998, 1000 - (kkt + 1) + 3) * (kkt + 1) * 2;
-	double start_temp = 40;
-	double end_temp = 10;
-	for (int jupi = 0;; ++jupi)
-	{
-		if(jupi % 100 == 0)
-		{
-			end = std::chrono::system_clock::now();
-			if(std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() > deadline)
-				break;
-		}
-		const int row = engine() % A.size();
-		const int col = engine() % A[row].size();
-		const int CHANGE = 10;
-		int change = (int)(engine() % CHANGE) - CHANGE / 2;
-		const int cval = A[row][col];
-		if(cost(cval) + change < 0)
-		{
-			change = -cost(cval);
-		}
-		int diff = 0;
-		for(const auto &idx : LIST[cval])
-		{
-			const int pc = C[idx];
-			const int nc = C[idx] + change;
-			int pd = std::abs(B[idx] - pc);
-			int nd = std::abs(B[idx] - nc);
-			diff += pd - nd;
-		}
-		double temp = start_temp + (end_temp - start_temp) 
-		* std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() / 2000;
-		double prob = std::exp(diff / temp);
-		if(prob >= (engine() % (int)1e5) / 1e5)
-		{
-			auto [dir, h, w] = dec(cval);
-			if(dir == 0)
-			{
-				cw[h][w] += change;
-			}
-			else
-			{
-				ch[h][w] += change;
-			}
-		}
-	}
+
 }
 int main()
 {
