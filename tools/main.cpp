@@ -45,6 +45,7 @@ std::vector<std::vector<int>> A;
 std::vector<int> LIST[1800];
 std::vector<int> B, C;
 std::mt19937 engine(0);
+std::chrono::system_clock::time_point  start, end;
 int enc(int h, int w, int dir)
 {
 	return dir * 900 + h * W + w;
@@ -322,47 +323,57 @@ void solve(int kkt)
 	{
 		LIST[e].emplace_back(kkt);
 	}
-	// if(kkt % 10 == 0)
+	C.resize(B.size());
+	for (int i = 0; i < (int)A.size(); ++i)
 	{
-		C.resize(B.size());
-		for (int i = 0; i < (int)A.size(); ++i)
+		C[i] = 0;
+		for (int j = 0; j < (int)A[i].size(); ++j)
 		{
-			C[i] = 0;
-			for (int j = 0; j < (int)A[i].size(); ++j)
-			{
-				C[i] += cost(A[i][j]);
-			}
+			C[i] += cost(A[i][j]);
 		}
-		for (int jupi = 0; jupi < 1500; ++jupi)
+	}
+	double deadline = pow(0.99998, 1000 - (kkt + 1) + 3) * (kkt + 1) * 2;
+	double start_temp = 40;
+	double end_temp = 10;
+	for (int jupi = 0;; ++jupi)
+	{
+		if(jupi % 100 == 0)
 		{
-			const int row = engine() % A.size();
-			const int col = engine() % A[row].size();
-			int change = (int)(engine() % 100) - 50;
-			const int cval = A[row][col];
-			if(cost(cval) + change < 0)
+			end = std::chrono::system_clock::now();
+			if(std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() > deadline)
+				break;
+		}
+		const int row = engine() % A.size();
+		const int col = engine() % A[row].size();
+		const int CHANGE = 10;
+		int change = (int)(engine() % CHANGE) - CHANGE / 2;
+		const int cval = A[row][col];
+		if(cost(cval) + change < 0)
+		{
+			change = -cost(cval);
+		}
+		int diff = 0;
+		for(const auto &idx : LIST[cval])
+		{
+			const int pc = C[idx];
+			const int nc = C[idx] + change;
+			int pd = std::abs(B[idx] - pc);
+			int nd = std::abs(B[idx] - nc);
+			diff += pd - nd;
+		}
+		double temp = start_temp + (end_temp - start_temp) 
+		* std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() / 2000;
+		double prob = std::exp(diff / temp);
+		if(prob >= (engine() % (int)1e5) / 1e5)
+		{
+			auto [dir, h, w] = dec(cval);
+			if(dir == 0)
 			{
-				change = -cost(cval);
+				cw[h][w] += change;
 			}
-			int diff = 0;
-			for(const auto &idx : LIST[cval])
+			else
 			{
-				const int pc = C[idx];
-				const int nc = C[idx] + change;
-				int pd = std::abs(B[idx] - pc);
-				int nd = std::abs(B[idx] - nc);
-				diff += nd - pd;
-			}
-			if(diff < 0)
-			{
-				auto [dir, h, w] = dec(cval);
-				if(dir == 0)
-				{
-					cw[h][w] += change;
-				}
-				else
-				{
-					ch[h][w] += change;
-				}
+				ch[h][w] += change;
 			}
 		}
 	}
@@ -372,6 +383,7 @@ int main()
   std::cin.tie(nullptr);
   std::ios::sync_with_stdio(false);
 
+  start = std::chrono::system_clock::now();
   for (int i = 0; i < H; ++i)
   {
   	for (int j = 0; j < W; ++j)
