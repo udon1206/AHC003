@@ -45,6 +45,7 @@ int sh, sw, th, tw;
 bool usedW[H], usedH[W];
 std::vector<std::vector<int>> A;
 std::vector<int> LIST[1800];
+int PLMN[1800], Z[1800];
 std::vector<int> B, C;
 std::chrono::system_clock::time_point  start, end;
 int enc(int h, int w, int dir)
@@ -57,7 +58,7 @@ std::tuple<int, int, int> dec(int X)
 }
 inline int cost(int X)
 {
-	auto [dir, h, w] = std::make_tuple(X / 900, (X % 900) / W,  X % W);
+	const auto [dir, h, w] = std::make_tuple(X / 900, (X % 900) / W,  X % W);
 	if(dir == 0)
 		return cw[h][w];
 	else
@@ -231,6 +232,14 @@ void solve_first()
 		ll len; cin >> len;
 		B.emplace_back(len);
 		len /= (cnth + cntw);
+		if(cnth > 20)
+		{
+			usedW[sh] = true;
+		}
+		if(cntw > 20)
+		{
+			usedH[tw] = true;
+		}
 		for (int i = std::min(sw, tw); i <= std::max(sw, tw); ++i)
 		{
 			updatecw(sh, i, len);
@@ -328,36 +337,67 @@ void solve(int kkt)
 		double TL = deadline - now_time;
 		for (int jupi = 0;; ++jupi)
 		{
-			if(jupi % 1000 == 0)
+			if(jupi % 30000 == 0)
 			{
 				end = std::chrono::system_clock::now();
 				if(std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() > deadline)
 					break;
+				for (int i = 0; i < 1800; ++i)
+				{
+					PLMN[i] = Z[i] = 0;
+				}
+				for (int i = 0; i < (int)A.size(); ++i)
+				{
+					C[i] = 0;
+					for (int j = 0; j < (int)A[i].size(); ++j)
+					{
+						C[i] += cost(A[i][j]);
+					}
+					for (int j = 0; j < (int)A[i].size(); ++j)
+					{
+						if(B[i] - C[i] > 0)
+						{
+							PLMN[A[i][j]] += 1;
+						}
+						else if(B[i] - C[i] < 0)
+						{
+							PLMN[A[i][j]] -= 1;
+						}
+						else
+						{
+							Z[A[i][j]] += 1;
+						}
+					}
+				}
 			}
-			const int row = (int)A.size() - 1 - xor128() % std::min((int)A.size(), 200);
+			const int row = (int)A.size() - 1 - xor128() % std::min((int)A.size(), 100);
 			const int col = xor128() % A[row].size();
 			const int CHANGE = 2;
-			int change = (int)(xor128() % CHANGE) ? 1 : -1;
+			int change = xor128() % CHANGE ? 1 : -1;
 			const int cval = A[row][col];
 			if(cost(cval) + change < 1000)
 			{
 				continue;
-				change = 1000 - cost(cval);
+				// change = 1000 - cost(cval);
 			}
 			if(cost(cval) + change > 9000)
 			{
 				continue;
-				change = 9000 - change;
+				// change = 9000 - cost(cval);
 			}
-			int diff = 0;
-			for(const auto &idx : LIST[cval])
-			{
-				const int pc = C[idx];
-				const int nc = C[idx] + change;
-				int pd = std::abs(B[idx] - pc);
-				int nd = std::abs(B[idx] - nc);
-				diff += pd - nd;
-			}
+			int diff = change * PLMN[cval] - Z[cval];
+			// for(const auto &idx : LIST[cval])
+			// {
+			// 	const int pc = C[idx];
+			// 	const int nc = C[idx] + change;
+			// 	int pd = std::abs(B[idx] - pc);
+			// 	int nd = std::abs(B[idx] - nc);
+			// 	diff += pd - nd;
+			// }
+			// if(diff != change * PLMN[cval] - std::abs(change) * Z[cval])
+			// {
+			// 	assert(false);
+			// }
 			double temp = start_temp + (end_temp - start_temp) 
 			* std::chrono::duration_cast<std::chrono::milliseconds>(end-st).count() / TL;
 			double prob = std::exp(diff / temp);
@@ -388,14 +428,7 @@ void solve(int kkt)
 		LIST[e].emplace_back(kkt);
 	}
 	C.resize(B.size());
-	for (int i = 0; i < (int)A.size(); ++i)
-	{
-		C[i] = 0;
-		for (int j = 0; j < (int)A[i].size(); ++j)
-		{
-			C[i] += cost(A[i][j]);
-		}
-	}
+
 
 }
 int main()
