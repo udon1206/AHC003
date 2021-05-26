@@ -321,27 +321,33 @@ void solve(int kkt)
 	if(kkt > 0)
 	{
 		auto st = std::chrono::system_clock::now();
-		double deadline = pow(0.9999998, 1000 - kkt) * kkt * 1.9;
+		double deadline = pow(0.999998, 1000 - kkt) * kkt * 1.95;
 		double start_temp = 1;
-		double end_temp = 0.01;
+		double end_temp = 0.1;
 		double now_time = std::chrono::duration_cast<std::chrono::milliseconds>(st-start).count();
 		double TL = deadline - now_time;
 		for (int jupi = 0;; ++jupi)
 		{
-			if(jupi % 10 == 0)
+			if(jupi % 1000 == 0)
 			{
 				end = std::chrono::system_clock::now();
 				if(std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() > deadline)
 					break;
 			}
-			const int row = xor128() % A.size();
+			const int row = (int)A.size() - 1 - xor128() % std::min((int)A.size(), 200);
 			const int col = xor128() % A[row].size();
 			const int CHANGE = 2;
 			int change = (int)(xor128() % CHANGE) ? 1 : -1;
 			const int cval = A[row][col];
-			if(cost(cval) + change < 0)
+			if(cost(cval) + change < 1000)
 			{
-				change = -cost(cval);
+				continue;
+				change = 1000 - cost(cval);
+			}
+			if(cost(cval) + change > 9000)
+			{
+				continue;
+				change = 9000 - change;
 			}
 			int diff = 0;
 			for(const auto &idx : LIST[cval])
