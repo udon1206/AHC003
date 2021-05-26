@@ -1,27 +1,17 @@
 #!/bin/bash
 rm -rf out
 mkdir out
-g++ -std=c++17 -O2 -o b main.cpp
-a=0
-while [ $a -lt 100 ]
-do
-	if [ $a -lt 10 ]
-	then
-		cargo run --release --bin tester in/000$a.txt ./b > out/000$a.txt
-	else
-		cargo run --release --bin tester in/00$a.txt ./b > out/00$a.txt
-	fi
-	a=`expr $a + 1`
-done
-a=0
-while [ $a -lt 100 ]
-do
-	if [ $a -lt 10 ]
-	then
-		cargo run --release --bin vis in/000$a.txt out/000$a.txt > out/score_000$a.txt
-	else
-		cargo run --release --bin vis in/00$a.txt out/00$a.txt > out/score_00$a.txt
-	fi
-	a=`expr $a + 1`
-done
+g++ -std=c++17 -O2 -o b.out main.cpp
+
+f1(){
+  cargo run --release --bin tester in/$1.txt ./b.out > out/$1.txt
+}
+f2(){
+  cargo run --release --bin vis in/$1.txt out/$1.txt > out/score_$1.txt
+}
+export -f f1
+export -f f2
+seq -f '%04g' 1000 1299 | xargs -t -n1 -P8 -I{} bash -c "f1 {}"
+seq -f '%04g' 1000 1299 | xargs -t -n1 -P8 -I{} bash -c "f2 {}"
+
 python3 evaluate.py
