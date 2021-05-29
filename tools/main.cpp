@@ -45,9 +45,9 @@ int sh, sw, th, tw;
 bool usedW[H], usedH[W];
 std::vector<std::vector<int>> A;
 std::vector<int> LIST[1800];
-int PLMN[1800], Z[1800];
 std::vector<int> B, C;
 std::chrono::system_clock::time_point  start, end;
+
 int enc(int h, int w, int dir)
 {
 	return dir * 900 + h * W + w;
@@ -58,7 +58,7 @@ std::tuple<int, int, int> dec(int X)
 }
 inline int cost(int X)
 {
-	const auto [dir, h, w] = std::make_tuple(X / 900, (X % 900) / W,  X % W);
+	auto [dir, h, w] = std::make_tuple(X / 900, (X % 900) / W,  X % W);
 	if(dir == 0)
 		return cw[h][w];
 	else
@@ -224,34 +224,6 @@ void solve_first()
 			curh -= 1;
 		}
 	};
-	if(std::max(cnth, cntw) * 10 < (cnth + cntw) * 5)
-	{
-		movew(tw);
-		moveh(th);
-		cout << res << endl;
-		ll len; cin >> len;
-		B.emplace_back(len);
-		len /= (cnth + cntw);
-		if(cnth > 20)
-		{
-			usedW[sh] = true;
-		}
-		if(cntw > 20)
-		{
-			usedH[tw] = true;
-		}
-		for (int i = std::min(sw, tw); i <= std::max(sw, tw); ++i)
-		{
-			updatecw(sh, i, len);
-		}
-		for (int i = std::min(sh, th); i <= std::max(sh, th); ++i)
-		{
-			updatech(i, tw, len);
-		}
-		std::sort(a.begin(), a.end());
-		A.emplace_back(a);
-	}
-	else
 	{
 		if(cnth > cntw)
 		{
@@ -261,7 +233,7 @@ void solve_first()
 				if(not usedH[i])
 				{
 					w = i;
-					if(cnth > 10)
+					// if(cnth > 15)
 						usedH[w] = true;
 					break;
 				}
@@ -279,9 +251,39 @@ void solve_first()
 				ll len; cin >> len;
 				B.emplace_back(len);
 				len /= (cnth + cntw);
-				for (int i = 0; i < H - 1; ++i)
+				if(usedH[w])
 				{
-					updatech(i, w, len);
+					for (int i = 0; i < H - 1; ++i)
+					{
+						updatech(i, w, len);
+					}
+				}
+
+				{
+					int curh = sh, curw = sw;
+					for(const auto &c : res)
+					{
+						if(c == 'R')
+						{
+							updatecw(curh, curw, len);
+							curw += 1;
+						}
+						if(c == 'L')
+						{
+							updatecw(curh, curw - 1, len);
+							curw -= 1;
+						}
+						if(c == 'U')
+						{
+							updatech(curh - 1, curw, len);
+							curh -= 1;
+						}
+						if(c == 'D')
+						{
+							updatech(curh, curw, len);
+							curh += 1;
+						}
+					}
 				}
 				std::sort(a.begin(), a.end());
 				A.emplace_back(a);
@@ -295,7 +297,7 @@ void solve_first()
 				if(not usedW[i])
 				{
 					h = i;
-					if(cntw > 10)
+					// if(cntw > 15)
 						usedW[h] = true;
 					break;
 				}
@@ -313,9 +315,38 @@ void solve_first()
 				ll len; cin >> len;
 				B.emplace_back(len);
 				len /= (cnth + cntw);
-				for (int i = 0; i < W - 1; ++i)
+				if(usedW[h])
 				{
-					updatecw(h, i, len);
+					for (int i = 0; i < W - 1; ++i)
+					{
+						updatecw(h, i, len);
+					}
+				}
+				{
+					int curh = sh, curw = sw;
+					for(const auto &c : res)
+					{
+						if(c == 'R')
+						{
+							// updatecw(curh, curw, len);
+							curw += 1;
+						}
+						if(c == 'L')
+						{
+							// updatecw(curh, curw - 1, len);
+							curw -= 1;
+						}
+						if(c == 'U')
+						{
+							// updatech(curh - 1, curw, len);
+							curh -= 1;
+						}
+						if(c == 'D')
+						{
+							// updatech(curh, curw, len);
+							curh += 1;
+						}
+					}
 				}
 				std::sort(a.begin(), a.end());
 				A.emplace_back(a);
@@ -331,21 +362,17 @@ void solve(int kkt)
 	{
 		auto st = std::chrono::system_clock::now();
 		double deadline = pow(0.999998, 1000 - kkt) * kkt * 1.95;
-		double start_temp = 1;
-		double end_temp = 0.1;
+		double start_temp = 10;
+		double end_temp = 1;
 		double now_time = std::chrono::duration_cast<std::chrono::milliseconds>(st-start).count();
 		double TL = deadline - now_time;
 		for (int jupi = 0;; ++jupi)
 		{
-			if(jupi % 30000 == 0)
+			if(jupi % 10000 == 0)
 			{
 				end = std::chrono::system_clock::now();
 				if(std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() > deadline)
 					break;
-				for (int i = 0; i < 1800; ++i)
-				{
-					PLMN[i] = Z[i] = 0;
-				}
 				for (int i = 0; i < (int)A.size(); ++i)
 				{
 					C[i] = 0;
@@ -353,69 +380,50 @@ void solve(int kkt)
 					{
 						C[i] += cost(A[i][j]);
 					}
-					for (int j = 0; j < (int)A[i].size(); ++j)
+				}
+			}
+			{
+				const int row = (int)A.size() - 1 - xor128() % std::min((int)A.size(), 200);
+				const int col = xor128() % A[row].size();
+				const int CHANGE = 30;
+				int change = (int)(xor128() % CHANGE) - CHANGE / 2;
+				const int cval = A[row][col];
+				if(cost(cval) + change < 1000)
+				{
+					change = 1000 - cost(cval);
+				}
+				if(cost(cval) + change > 9000)
+				{
+					change = 9000 - cost(cval);
+				}
+				int diff = 0;
+				for(const auto &idx : LIST[cval])
+				{
+					const int pc = C[idx];
+					const int nc = C[idx] + change;
+					int pd = std::abs(B[idx] - pc);
+					int nd = std::abs(B[idx] - nc);
+					diff += pd - nd;
+				}
+				double temp = start_temp + (end_temp - start_temp) 
+				* std::chrono::duration_cast<std::chrono::milliseconds>(end-st).count() / TL;
+				double prob = std::exp(diff / temp);
+				if(prob >= (xor128() % (int)(1e6)) / 1e6)
+				{
+					auto [dir, h, w] = dec(cval);
+					if(dir == 0)
 					{
-						if(B[i] - C[i] > 0)
-						{
-							PLMN[A[i][j]] += 1;
-						}
-						else if(B[i] - C[i] < 0)
-						{
-							PLMN[A[i][j]] -= 1;
-						}
-						else
-						{
-							Z[A[i][j]] += 1;
-						}
+						cw[h][w] += change;
 					}
-				}
-			}
-			const int row = (int)A.size() - 1 - xor128() % std::min((int)A.size(), 100);
-			const int col = xor128() % A[row].size();
-			const int CHANGE = 2;
-			int change = xor128() % CHANGE ? 1 : -1;
-			const int cval = A[row][col];
-			if(cost(cval) + change < 1000)
-			{
-				continue;
-				// change = 1000 - cost(cval);
-			}
-			if(cost(cval) + change > 9000)
-			{
-				continue;
-				// change = 9000 - cost(cval);
-			}
-			int diff = change * PLMN[cval] - Z[cval];
-			// for(const auto &idx : LIST[cval])
-			// {
-			// 	const int pc = C[idx];
-			// 	const int nc = C[idx] + change;
-			// 	int pd = std::abs(B[idx] - pc);
-			// 	int nd = std::abs(B[idx] - nc);
-			// 	diff += pd - nd;
-			// }
-			// if(diff != change * PLMN[cval] - std::abs(change) * Z[cval])
-			// {
-			// 	assert(false);
-			// }
-			double temp = start_temp + (end_temp - start_temp) 
-			* std::chrono::duration_cast<std::chrono::milliseconds>(end-st).count() / TL;
-			double prob = std::exp(diff / temp);
-			if(prob >= (xor128() % (int)(1e6)) / 1e6)
-			{
-				auto [dir, h, w] = dec(cval);
-				if(dir == 0)
-				{
-					cw[h][w] += change;
-				}
-				else
-				{
-					ch[h][w] += change;
+					else
+					{
+						ch[h][w] += change;
+					}
 				}
 			}
 		}
 	}
-	if(kkt < 130)
+	if(kkt < 200)
 	{
 		solve_first();
 	}
@@ -423,13 +431,48 @@ void solve(int kkt)
 	{
 		solve_last();
 	}
+	if(kkt > 200)
+	{
+		for (int i = 0; i < H; ++i)
+		{
+			for (int j = 0; j < W; ++j)
+			{
+				int sum = 0;
+				int cnt = 0;
+				for (int k = 0; k < W; ++k)
+				{
+					if(std::abs(j - k) < W / 4)
+					{
+						sum += cw[i][k];
+						cnt += 1;
+					}
+				}
+				updatecw(i, j, sum / cnt);
+			}
+		}
+		for (int j = 0; j < W; ++j)
+		{
+			for (int i = 0; i < H; ++i)
+			{
+				int sum = 0;
+				int cnt = 0;
+				for (int k = 0; k < H; ++k)
+				{
+					if(std::abs(i - k) < H / 4)
+					{
+						sum += ch[k][j];
+						cnt += 1;
+					}
+				}
+				updatech(i, j, sum / cnt);
+			}
+		}
+	}
 	for (const auto &e : A.back())
 	{
 		LIST[e].emplace_back(kkt);
 	}
 	C.resize(B.size());
-
-
 }
 int main()
 {
