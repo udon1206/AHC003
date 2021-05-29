@@ -1,13 +1,13 @@
 #!/bin/bash
-rm -rf out
-mkdir out
-g++ -std=c++17 -O2 -o b.out main.cpp
+# コンパイル
+g++ -std=c++17 -O2 -o JK.out main.cpp
 st=1200
 en=1499
+# インタラクティブ処理の関数
 f1(){
-  cargo run --release --bin tester in/$1.txt ./b.out > out/$1.txt
+  cargo run --release --bin tester in/$1.txt ./JK.out > out/$1.txt
 }
-
+# ビジュアライザに通して，スコアを標準出力として取得する関数
 f2(){
   if [ $1 = $st];
   then
@@ -16,9 +16,11 @@ f2(){
     cargo run --release --bin vis in/$1.txt out/$1.txt >> score.txt
    fi
 }
+# xargs で関数使うための処理
 export -f f1
 export -f f2
+# 並列処理
 seq -f '%04g' $st $en | xargs -t -n1 -P8 -I{} bash -c "f1 {}"
 seq -f '%04g' $st $en | xargs -t -n1 -P8 -I{} bash -c "f2 {}"
-
+# score.txt に書き込まれたスコアの計算
 python3 evaluate.py
