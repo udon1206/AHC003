@@ -1,14 +1,14 @@
 import os
 
-path = "out"
-
-files = os.listdir(path)
+path = "score.txt"
 res = 0
-for filename in files:
-  if filename[0] == 's':
-    with open(os.path.join(path, filename), mode = 'r') as f:
-      s = f.read()
-      l = s.split()
-      res += int(l[2])
-print(res)
+cnt = 0
+with open(path) as f:
+  string = f.readlines()
+  for line in string:
+    res += int(line.split()[2])
+    cnt += 1
+print(f"合計:{res}")
+print(f"平均:{res / cnt}")
+
 

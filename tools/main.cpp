@@ -383,7 +383,7 @@ void solve(int kkt)
 				}
 			}
 			{
-				const int row = (int)A.size() - 1 - xor128() % std::min((int)A.size(), 200);
+				const int row = xor128() % (int)A.size();
 				const int col = xor128() % A[row].size();
 				const int CHANGE = 30;
 				int change = (int)(xor128() % CHANGE) - CHANGE / 2;
