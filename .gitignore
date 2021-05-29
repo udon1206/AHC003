@@ -75,4 +75,4 @@ Cargo.lock
 
 # AHC
 *.svg
-out/
+tools/out/
