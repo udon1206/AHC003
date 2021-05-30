@@ -4,4 +4,10 @@
 
 アルゴリズム自体は[ブログ](https://jupiro.hatenablog.com/entry/AHC003)を見てください．
 
-[run.sh](https://github.com/jupiro/AHC003/blob/main/tools/run.sh) で並列処理できます．もしよかったら，clone とかして使ってみてね．
+# 並列実行のやり方
+
+```sh
+$ ./tools/run.sh
+```
+
+最初の一回だけは Rust の実行の関係で時間かかると思います．
