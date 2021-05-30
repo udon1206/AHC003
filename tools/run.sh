@@ -1,9 +1,10 @@
 #!/bin/bash
+
 # コンパイル
 g++ -std=c++17 -O2 -Wall -Wextra -o JK.out main.cpp
 #[st, en] のseed のファイルを処理する
-st=1200
-en=1499
+st=0
+en=300
 # インタラクティブ処理の関数
 f1(){
   cargo run --release --bin tester in/$1.txt ./JK.out > out/$1.txt
@@ -18,7 +19,8 @@ export -f f2
 
 #以前の処理を削除
 rm -f score.txt
-
+rm -rf out
+mkdir out
 # 並列処理
 seq -f '%04g' $st $en | xargs -t -n1 -P8 -I{} bash -c "f1 {}"
 seq -f '%04g' $st $en | xargs -t -n1 -P8 -I{} bash -c "f2 {}"
