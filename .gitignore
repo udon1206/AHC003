@@ -76,3 +76,5 @@ Cargo.lock
 # AHC
 *.svg
 tools/out/
+seeds.txt
+score.txt
