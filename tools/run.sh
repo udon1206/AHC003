@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#tools フォルダ下で実行
+cd `dirname $0`
+
 # コンパイル
 g++ -std=c++17 -O2 -Wall -Wextra -o JK.out main.cpp
 #[st, en] のseed のファイルを処理する
