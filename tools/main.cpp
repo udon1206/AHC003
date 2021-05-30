@@ -37,8 +37,8 @@ const int H = 30;
 const int W = 30;
 int ch[H][W];
 int cw[H][W];
-int chboarder[W];
-int cwboarder[H];
+int mch[H][W];
+int mcw[H][W];
 int chcount[H][W];
 int cwcount[H][W];
 int sh, sw, th, tw;
@@ -383,7 +383,7 @@ void solve(int kkt)
 				}
 			}
 			{
-				const int row = xor128() % (int)A.size();
+				const int row = (int)A.size() - 1 - xor128() % std::min((int)A.size(), 200);
 				const int col = xor128() % A[row].size();
 				const int CHANGE = 30;
 				int change = (int)(xor128() % CHANGE) - CHANGE / 2;
@@ -431,157 +431,40 @@ void solve(int kkt)
 	{
 		solve_last();
 	}
-	if(kkt >= 300)
+	if(kkt > 200)
 	{
 		for (int i = 0; i < H; ++i)
 		{
-			double diff = 0.0;
-			int id = -1;
-			for (int j = 1; j < W; ++j)
-			{
-				double sl = 0.0;
-				double sr = 0.0;
-				for (int k = 0; k < W; ++k)
-				{
-					if(k < j)
-						sl += cw[i][k];
-					else
-						sr += cw[i][k];
-				}
-				sl /= j;
-				sr /= (W - j);
-				if(chmax(diff, std::fabs(sl - sr)))
-				{
-					id = j;
-				}
-			}
-			if(diff > 1000)
-			{
-				cwboarder[i] = id;
-			}
-		}
-		for (int j = 0; j < W; ++j)
-		{
-			double diff = 0.0;
-			int id = -1;
-			for (int i = 1; i < H; ++i)
-			{
-				double su = 0.0;
-				double sd = 0.0;
-				for (int k = 0; k < H; ++k)
-				{
-					if(k < i)
-						su += ch[k][j];
-					else
-						sd += ch[k][j];
-				}
-				su /= i;
-				sd /= (H - i);
-				if(chmax(diff, std::fabs(su - sd)))
-				{
-					id = i;
-				}
-			}
-			if(diff > 1000)
-			{
-				chboarder[j] = id;
-			}
-		}
-	}
-	if(kkt >= 200)
-	{
-		for (int i = 0; i < H; ++i)
-		{
-			int sl = -1, sr = -1;
 			for (int j = 0; j < W; ++j)
 			{
 				int sum = 0;
 				int cnt = 0;
-				if(cwboarder[i] == -1)
+				for (int k = 0; k < W; ++k)
 				{
-					for (int k = 0; k < W; ++k)
+					if(std::abs(j - k) < W / 4)
 					{
-						if(std::abs(j - k) < W / 4)
-						{
-							sum += cw[i][k];
-							cnt += 1;
-						}
-					}
-					updatecw(i, j, sum / cnt);
-				}
-				else
-				{
-					if(sl == -1)
-					{
-						sl = 0, sr = 0;
-						for (int k = 0; k < W; ++k)
-						{
-							if(k < cwboarder[i])
-							{
-								sl += cw[i][k];
-							}
-							else
-							{
-								sr += cw[i][k];
-							}
-						}
-					}
-					if(j < cwboarder[i])
-					{
-						updatecw(i, j, sl / cwboarder[i]);
-					}
-					else
-					{
-						updatecw(i, j, sr / (W - cwboarder[i]));
+						sum += cw[i][k];
+						cnt += 1;
 					}
 				}
+				updatecw(i, j, sum / cnt);
 			}
 		}
 		for (int j = 0; j < W; ++j)
 		{
-			int su = -1, sd = -1;
 			for (int i = 0; i < H; ++i)
 			{
-				if(chboarder[j] == -1)
+				int sum = 0;
+				int cnt = 0;
+				for (int k = 0; k < H; ++k)
 				{
-					int sum = 0;
-					int cnt = 0;
-					for (int k = 0; k < H; ++k)
+					if(std::abs(i - k) < H / 4)
 					{
-						if(std::abs(i - k) < H / 4)
-						{
-							sum += ch[k][j];
-							cnt += 1;
-						}
-					}
-					updatech(i, j, sum / cnt);
-				}
-				else
-				{
-					if(su == -1)
-					{
-						su = 0, sd = 0;
-						for (int k = 0; k < H; ++k)
-						{
-							if(k < chboarder[j])
-							{
-								su += ch[i][k];
-							}
-							else
-							{
-								sd += ch[i][k];
-							}
-						}
-					}
-					if(i < chboarder[j])
-					{
-						updatech(i, j, su / chboarder[j]);
-					}
-					else
-					{
-						updatech(i, j, sd / (H - chboarder[j]));
+						sum += ch[k][j];
+						cnt += 1;
 					}
 				}
+				updatech(i, j, sum / cnt);
 			}
 		}
 	}
@@ -599,7 +482,6 @@ int main()
   start = std::chrono::system_clock::now();
   for (int i = 0; i < H; ++i)
   {
-  	chboarder[i] = cwboarder[i] = -1;
   	for (int j = 0; j < W; ++j)
   	{
   		chcount[i][j] = cwcount[i][j] = 0;
