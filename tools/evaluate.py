@@ -8,7 +8,7 @@ with open(path) as f:
   for line in string:
     res += int(line.split()[2])
     cnt += 1
-print(f"合計:{res}")
-print(f"平均:{res / cnt}")
+print(f"合計: {res}")
+print(f"平均: {res / cnt}")
 
 
